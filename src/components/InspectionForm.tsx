@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { InspectionItem } from "./InspectionItem";
 import { useToast } from "@/hooks/use-toast";
+import { generateInspectionPDF } from "@/utils/pdfGenerator";
+import { Download } from "lucide-react";
+import usfLogo from "@/assets/usf-logo.png";
 
 const inspectionSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -90,14 +93,38 @@ export const InspectionForm = () => {
     });
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      const formData = form.getValues();
+      await generateInspectionPDF(formData, 'inspection-form');
+      toast({
+        title: "PDF Generated",
+        description: "Your inspection report has been downloaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-4 pb-8">
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-2xl" id="inspection-form">
         <Card className="mb-6">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-primary">
-              USF Daily Restroom Inspection
-            </CardTitle>
+            <div className="flex flex-col items-center space-y-4">
+              <img 
+                src={usfLogo} 
+                alt="USF Facilities Inc. Logo" 
+                className="h-16 w-auto object-contain"
+              />
+              <CardTitle className="text-2xl font-bold text-primary">
+                Daily Restroom Inspection
+              </CardTitle>
+            </div>
           </CardHeader>
         </Card>
 
@@ -259,13 +286,23 @@ export const InspectionForm = () => {
 
             {/* Submit Button */}
             <Card>
-              <CardContent className="pt-6">
+              <CardContent className="pt-6 space-y-3">
                 <Button 
                   type="submit" 
                   className="w-full h-12 text-lg font-semibold"
                   size="lg"
                 >
                   Complete Inspection
+                </Button>
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={handleDownloadPDF}
+                  className="w-full h-12 text-lg font-semibold"
+                  size="lg"
+                >
+                  <Download className="mr-2 h-5 w-5" />
+                  Download PDF Report
                 </Button>
               </CardContent>
             </Card>

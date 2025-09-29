@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { InspectionItem } from "./InspectionItem";
 import { useToast } from "@/hooks/use-toast";
 import { generateInspectionPDF } from "@/utils/pdfGenerator";
-import { Download } from "lucide-react";
+import { generateInspectionExcel } from "@/utils/excelGenerator";
+import { Download, FileSpreadsheet } from "lucide-react";
 import usfLogo from "@/assets/usf-logo.png";
 
 const inspectionSchema = z.object({
@@ -105,6 +106,23 @@ export const InspectionForm = () => {
       toast({
         title: "Error",
         description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadExcel = () => {
+    try {
+      const formData = form.getValues();
+      generateInspectionExcel(formData);
+      toast({
+        title: "Excel Generated",
+        description: "Your inspection data has been exported to Excel successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate Excel file. Please try again.",
         variant: "destructive",
       });
     }
@@ -303,6 +321,16 @@ export const InspectionForm = () => {
                 >
                   <Download className="mr-2 h-5 w-5" />
                   Download PDF Report
+                </Button>
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={handleDownloadExcel}
+                  className="w-full h-12 text-lg font-semibold"
+                  size="lg"
+                >
+                  <FileSpreadsheet className="mr-2 h-5 w-5" />
+                  Export to Excel
                 </Button>
               </CardContent>
             </Card>

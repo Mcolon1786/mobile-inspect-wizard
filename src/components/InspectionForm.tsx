@@ -14,35 +14,44 @@ import { generateInspectionExcel } from "@/utils/excelGenerator";
 import { Download, FileSpreadsheet } from "lucide-react";
 import usfLogo from "@/assets/usf-logo.png";
 
-const inspectionSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  date: z.string().min(1, "Date is required"),
-  time: z.string().min(1, "Time is required"),
-  floor: z.string().min(1, "Floor is required"),
-  mensRestroom: z.record(z.object({
-    status: z.enum(["ok", "clean", "not_clean", "damaged", "not_working", "replenish", "other"]),
-    photo: z.any().optional(),
-    comments: z.string().optional(),
-  })),
-  womensRestroom: z.record(z.object({
-    status: z.enum(["ok", "clean", "not_clean", "damaged", "not_working", "replenish", "other"]),
-    photo: z.any().optional(),
-    comments: z.string().optional(),
-  })),
-  unisexRestroom1: z.record(z.object({
-    status: z.enum(["ok", "clean", "not_clean", "damaged", "not_working", "replenish", "other"]),
-    photo: z.any().optional(),
-    comments: z.string().optional(),
-  })),
-  unisexRestroom2: z.record(z.object({
-    status: z.enum(["ok", "clean", "not_clean", "damaged", "not_working", "replenish", "other"]),
-    photo: z.any().optional(),
-    comments: z.string().optional(),
-  })),
-  generalComments: z.string().optional(),
-});
-
-type InspectionFormData = z.infer<typeof inspectionSchema>;
+// Define all 35 restroom sections
+const restroomSections = [
+  { key: "basementMensPSTV", label: "Basement Men's Restroom - PSTV" },
+  { key: "basementWomensPSTV", label: "Basement Women's Restroom - PSTV" },
+  { key: "basementMensPrintShop", label: "Basement Men's Restroom - Print Shop" },
+  { key: "basementWomensPrintShop", label: "Basement Women's Restroom - Print Shop" },
+  { key: "groundFloorUnisexPayroll1", label: "Ground Floor Unisex Restroom - Payroll" },
+  { key: "groundFloorUnisexPayroll2", label: "Ground Floor Unisex Restroom - Payroll" },
+  { key: "groundFloorUnisexWarehouse1", label: "Ground Floor Unisex Restroom - Warehouse" },
+  { key: "groundFloorUnisexWarehouse2", label: "Ground Floor Unisex Restroom - Warehouse" },
+  { key: "floor1MensPortalA", label: "1st Floor Men's Restroom - Portal A" },
+  { key: "floor1WomensPortalA", label: "1st Floor Women's Restroom - Portal A" },
+  { key: "floor1MensPortalC", label: "1st Floor Men's Restroom - Portal C" },
+  { key: "floor1WomensPortalC", label: "1st Floor Women's Restroom - Portal C" },
+  { key: "floor1UnisexPortalB_BOE1", label: "1st Floor Unisex Restroom - Portal B - BOE Suite" },
+  { key: "floor1UnisexPortalB_BOE2", label: "1st Floor Unisex Restroom - Portal B - BOE Suite" },
+  { key: "floor1MensPortalD", label: "1st Floor Men's Restroom - Portal D" },
+  { key: "floor1WomensPortalD", label: "1st Floor Women's Restroom - Portal D" },
+  { key: "floor2MensPortalA", label: "2nd Floor Men's Restroom - Portal A" },
+  { key: "floor2WomensPortalA", label: "2nd Floor Women's Restroom - Portal A" },
+  { key: "floor2MensPortalC", label: "2nd Floor Men's Restroom - Portal C" },
+  { key: "floor2WomensPortalC", label: "2nd Floor Women's Restroom - Portal C" },
+  { key: "floor2UnisexPortalC_Elevator", label: "2nd Floor Unisex Restroom - Portal C - Near Two-Bank Elevator" },
+  { key: "floor2MensPortalD", label: "2nd Floor Men's Restroom - Portal D" },
+  { key: "floor2WomensPortalD", label: "2nd Floor Women's Restroom - Portal D" },
+  { key: "floor3MensPortalA", label: "3rd Floor Men's Restroom - Portal A" },
+  { key: "floor3WomensPortalA", label: "3rd Floor Women's Restroom - Portal A" },
+  { key: "floor3MensPortalC", label: "3rd Floor Men's Restroom - Portal C" },
+  { key: "floor3WomensPortalC", label: "3rd Floor Women's Restroom - Portal C" },
+  { key: "floor3UnisexPortalC_OGC", label: "3rd Floor Unisex Restroom - Portal C - OGC Suite" },
+  { key: "floor3UnisexPortalB_Super", label: "3rd Floor Unisex Restroom - Portal B - Superintendent Suite" },
+  { key: "floor3MensPortalD", label: "3rd Floor Men's Restroom - Portal D" },
+  { key: "floor3WomensPortalD", label: "3rd Floor Women's Restroom - Portal D" },
+  { key: "floor4MensBreakArea", label: "4th Floor Men's Restroom - Break Area" },
+  { key: "floor4WomensBreakArea", label: "4th Floor Women's Restroom - Break Area" },
+  { key: "floor4MensNearNOC", label: "4th Floor Men's Restroom - Near N.O.C." },
+  { key: "floor4WomensNearNOC", label: "4th Floor Women's Restroom - Near N.O.C." },
+];
 
 const inspectionItems = [
   "walls_ceilings",
@@ -68,22 +77,49 @@ const itemLabels: Record<string, string> = {
   floor: "Floor"
 };
 
+// Build the schema dynamically
+const schemaFields: Record<string, any> = {
+  name: z.string().min(1, "Name is required"),
+  date: z.string().min(1, "Date is required"),
+  time: z.string().min(1, "Time is required"),
+  floor: z.string().min(1, "Floor is required"),
+  generalComments: z.string().optional(),
+};
+
+restroomSections.forEach(section => {
+  schemaFields[section.key] = z.record(z.object({
+    status: z.enum(["ok", "clean", "not_clean", "damaged", "not_working", "replenish", "other", "na"]).optional(),
+    photo: z.any().optional(),
+    comments: z.string().optional(),
+  }));
+});
+
+const inspectionSchema = z.object(schemaFields);
+type InspectionFormData = z.infer<typeof inspectionSchema>;
+
+// Build default values dynamically
+const buildDefaultValues = () => {
+  const defaults: any = {
+    name: "",
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+    floor: "",
+    generalComments: "",
+  };
+  
+  restroomSections.forEach(section => {
+    defaults[section.key] = {};
+  });
+  
+  return defaults;
+};
+
 export const InspectionForm = () => {
   const { toast } = useToast();
   
   const form = useForm<InspectionFormData>({
     resolver: zodResolver(inspectionSchema),
-    defaultValues: {
-      name: "",
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-      floor: "",
-      mensRestroom: {},
-      womensRestroom: {},
-      unisexRestroom1: {},
-      unisexRestroom2: {},
-      generalComments: "",
-    },
+    defaultValues: buildDefaultValues(),
   });
 
   const onSubmit = (data: InspectionFormData) => {
@@ -209,73 +245,24 @@ export const InspectionForm = () => {
               </CardContent>
             </Card>
 
-            {/* Men's Restroom */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg text-primary">Men's Restroom</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {inspectionItems.map((item) => (
-                  <InspectionItem
-                    key={`mens-${item}`}
-                    label={itemLabels[item]}
-                    name={`mensRestroom.${item}`}
-                    control={form.control}
-                  />
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Women's Restroom */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg text-primary">Women's Restroom</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {inspectionItems.map((item) => (
-                  <InspectionItem
-                    key={`womens-${item}`}
-                    label={itemLabels[item]}
-                    name={`womensRestroom.${item}`}
-                    control={form.control}
-                  />
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Unisex Restroom 1 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg text-primary">Unisex Restroom 1</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {inspectionItems.map((item) => (
-                  <InspectionItem
-                    key={`unisex1-${item}`}
-                    label={itemLabels[item]}
-                    name={`unisexRestroom1.${item}`}
-                    control={form.control}
-                  />
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Unisex Restroom 2 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg text-primary">Unisex Restroom 2</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {inspectionItems.map((item) => (
-                  <InspectionItem
-                    key={`unisex2-${item}`}
-                    label={itemLabels[item]}
-                    name={`unisexRestroom2.${item}`}
-                    control={form.control}
-                  />
-                ))}
-              </CardContent>
-            </Card>
+            {/* All 35 Restroom Sections */}
+            {restroomSections.map((section) => (
+              <Card key={section.key}>
+                <CardHeader>
+                  <CardTitle className="text-lg text-primary">{section.label}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {inspectionItems.map((item) => (
+                    <InspectionItem
+                      key={`${section.key}-${item}`}
+                      label={itemLabels[item]}
+                      name={`${section.key}.${item}`}
+                      control={form.control}
+                    />
+                  ))}
+                </CardContent>
+              </Card>
+            ))}
 
             {/* General Comments */}
             <Card>

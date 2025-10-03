@@ -7,7 +7,8 @@ const statusLabels: Record<string, string> = {
   damaged: "Damaged",
   not_working: "Not Working",
   replenish: "Replenish",
-  other: "Other"
+  other: "Other",
+  na: "N/A"
 };
 
 const itemLabels: Record<string, string> = {
@@ -21,6 +22,45 @@ const itemLabels: Record<string, string> = {
   trash_sharps_containers: "Trash/Sharps Containers",
   floor: "Floor"
 };
+
+// Define all 35 restroom sections
+const restroomSections = [
+  { key: "basementMensPSTV", label: "Basement Men's Restroom - PSTV" },
+  { key: "basementWomensPSTV", label: "Basement Women's Restroom - PSTV" },
+  { key: "basementMensPrintShop", label: "Basement Men's Restroom - Print Shop" },
+  { key: "basementWomensPrintShop", label: "Basement Women's Restroom - Print Shop" },
+  { key: "groundFloorUnisexPayroll1", label: "Ground Floor Unisex Restroom - Payroll" },
+  { key: "groundFloorUnisexPayroll2", label: "Ground Floor Unisex Restroom - Payroll" },
+  { key: "groundFloorUnisexWarehouse1", label: "Ground Floor Unisex Restroom - Warehouse" },
+  { key: "groundFloorUnisexWarehouse2", label: "Ground Floor Unisex Restroom - Warehouse" },
+  { key: "floor1MensPortalA", label: "1st Floor Men's Restroom - Portal A" },
+  { key: "floor1WomensPortalA", label: "1st Floor Women's Restroom - Portal A" },
+  { key: "floor1MensPortalC", label: "1st Floor Men's Restroom - Portal C" },
+  { key: "floor1WomensPortalC", label: "1st Floor Women's Restroom - Portal C" },
+  { key: "floor1UnisexPortalB_BOE1", label: "1st Floor Unisex Restroom - Portal B - BOE Suite" },
+  { key: "floor1UnisexPortalB_BOE2", label: "1st Floor Unisex Restroom - Portal B - BOE Suite" },
+  { key: "floor1MensPortalD", label: "1st Floor Men's Restroom - Portal D" },
+  { key: "floor1WomensPortalD", label: "1st Floor Women's Restroom - Portal D" },
+  { key: "floor2MensPortalA", label: "2nd Floor Men's Restroom - Portal A" },
+  { key: "floor2WomensPortalA", label: "2nd Floor Women's Restroom - Portal A" },
+  { key: "floor2MensPortalC", label: "2nd Floor Men's Restroom - Portal C" },
+  { key: "floor2WomensPortalC", label: "2nd Floor Women's Restroom - Portal C" },
+  { key: "floor2UnisexPortalC_Elevator", label: "2nd Floor Unisex Restroom - Portal C - Near Two-Bank Elevator" },
+  { key: "floor2MensPortalD", label: "2nd Floor Men's Restroom - Portal D" },
+  { key: "floor2WomensPortalD", label: "2nd Floor Women's Restroom - Portal D" },
+  { key: "floor3MensPortalA", label: "3rd Floor Men's Restroom - Portal A" },
+  { key: "floor3WomensPortalA", label: "3rd Floor Women's Restroom - Portal A" },
+  { key: "floor3MensPortalC", label: "3rd Floor Men's Restroom - Portal C" },
+  { key: "floor3WomensPortalC", label: "3rd Floor Women's Restroom - Portal C" },
+  { key: "floor3UnisexPortalC_OGC", label: "3rd Floor Unisex Restroom - Portal C - OGC Suite" },
+  { key: "floor3UnisexPortalB_Super", label: "3rd Floor Unisex Restroom - Portal B - Superintendent Suite" },
+  { key: "floor3MensPortalD", label: "3rd Floor Men's Restroom - Portal D" },
+  { key: "floor3WomensPortalD", label: "3rd Floor Women's Restroom - Portal D" },
+  { key: "floor4MensBreakArea", label: "4th Floor Men's Restroom - Break Area" },
+  { key: "floor4WomensBreakArea", label: "4th Floor Women's Restroom - Break Area" },
+  { key: "floor4MensNearNOC", label: "4th Floor Men's Restroom - Near N.O.C." },
+  { key: "floor4WomensNearNOC", label: "4th Floor Women's Restroom - Near N.O.C." },
+];
 
 export const generateInspectionExcel = (formData: any) => {
   const workbook = XLSX.utils.book_new();
@@ -60,16 +100,15 @@ export const generateInspectionExcel = (formData: any) => {
     return section;
   };
 
-  // Combine all data
-  const allData = [
-    ...headerData,
-    ...createRestroomSection(formData.mensRestroom, "MEN'S RESTROOM"),
-    ...createRestroomSection(formData.womensRestroom, "WOMEN'S RESTROOM"),
-    ...createRestroomSection(formData.unisexRestroom1, "UNISEX RESTROOM 1"),
-    ...createRestroomSection(formData.unisexRestroom2, "UNISEX RESTROOM 2"),
-    ['GENERAL COMMENTS'],
-    [formData.generalComments || 'None']
-  ];
+  // Combine all data - iterate through all 35 restroom sections
+  const allData = [...headerData];
+  
+  restroomSections.forEach(section => {
+    allData.push(...createRestroomSection(formData[section.key], section.label.toUpperCase()));
+  });
+  
+  allData.push(['GENERAL COMMENTS']);
+  allData.push([formData.generalComments || 'None']);
 
   // Create worksheet
   const worksheet = XLSX.utils.aoa_to_sheet(allData);

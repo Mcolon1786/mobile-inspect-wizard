@@ -21,6 +21,7 @@ const statusOptions = [
   { value: "not_working", label: "Not Working", color: "text-red-700" },
   { value: "replenish", label: "Replenish", color: "text-yellow-600" },
   { value: "other", label: "Other", color: "text-gray-600" },
+  { value: "na", label: "N/A", color: "text-gray-500" },
 ];
 
 export const InspectionItem: React.FC<InspectionItemProps> = ({ label, name, control }) => {

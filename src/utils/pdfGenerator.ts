@@ -8,7 +8,8 @@ const statusLabels: Record<string, string> = {
   damaged: "Damaged",
   not_working: "Not Working",
   replenish: "Replenish",
-  other: "Other"
+  other: "Other",
+  na: "N/A"
 };
 
 const itemLabels: Record<string, string> = {
@@ -210,6 +211,45 @@ const addRestroomSection = async (
   return { y, page: pageNum };
 };
 
+// Define all 35 restroom sections
+const restroomSections = [
+  { key: "basementMensPSTV", label: "BASEMENT MEN'S RESTROOM - PSTV" },
+  { key: "basementWomensPSTV", label: "BASEMENT WOMEN'S RESTROOM - PSTV" },
+  { key: "basementMensPrintShop", label: "BASEMENT MEN'S RESTROOM - PRINT SHOP" },
+  { key: "basementWomensPrintShop", label: "BASEMENT WOMEN'S RESTROOM - PRINT SHOP" },
+  { key: "groundFloorUnisexPayroll1", label: "GROUND FLOOR UNISEX RESTROOM - PAYROLL" },
+  { key: "groundFloorUnisexPayroll2", label: "GROUND FLOOR UNISEX RESTROOM - PAYROLL" },
+  { key: "groundFloorUnisexWarehouse1", label: "GROUND FLOOR UNISEX RESTROOM - WAREHOUSE" },
+  { key: "groundFloorUnisexWarehouse2", label: "GROUND FLOOR UNISEX RESTROOM - WAREHOUSE" },
+  { key: "floor1MensPortalA", label: "1ST FLOOR MEN'S RESTROOM - PORTAL A" },
+  { key: "floor1WomensPortalA", label: "1ST FLOOR WOMEN'S RESTROOM - PORTAL A" },
+  { key: "floor1MensPortalC", label: "1ST FLOOR MEN'S RESTROOM - PORTAL C" },
+  { key: "floor1WomensPortalC", label: "1ST FLOOR WOMEN'S RESTROOM - PORTAL C" },
+  { key: "floor1UnisexPortalB_BOE1", label: "1ST FLOOR UNISEX RESTROOM - PORTAL B - BOE SUITE" },
+  { key: "floor1UnisexPortalB_BOE2", label: "1ST FLOOR UNISEX RESTROOM - PORTAL B - BOE SUITE" },
+  { key: "floor1MensPortalD", label: "1ST FLOOR MEN'S RESTROOM - PORTAL D" },
+  { key: "floor1WomensPortalD", label: "1ST FLOOR WOMEN'S RESTROOM - PORTAL D" },
+  { key: "floor2MensPortalA", label: "2ND FLOOR MEN'S RESTROOM - PORTAL A" },
+  { key: "floor2WomensPortalA", label: "2ND FLOOR WOMEN'S RESTROOM - PORTAL A" },
+  { key: "floor2MensPortalC", label: "2ND FLOOR MEN'S RESTROOM - PORTAL C" },
+  { key: "floor2WomensPortalC", label: "2ND FLOOR WOMEN'S RESTROOM - PORTAL C" },
+  { key: "floor2UnisexPortalC_Elevator", label: "2ND FLOOR UNISEX RESTROOM - PORTAL C - NEAR TWO-BANK ELEVATOR" },
+  { key: "floor2MensPortalD", label: "2ND FLOOR MEN'S RESTROOM - PORTAL D" },
+  { key: "floor2WomensPortalD", label: "2ND FLOOR WOMEN'S RESTROOM - PORTAL D" },
+  { key: "floor3MensPortalA", label: "3RD FLOOR MEN'S RESTROOM - PORTAL A" },
+  { key: "floor3WomensPortalA", label: "3RD FLOOR WOMEN'S RESTROOM - PORTAL A" },
+  { key: "floor3MensPortalC", label: "3RD FLOOR MEN'S RESTROOM - PORTAL C" },
+  { key: "floor3WomensPortalC", label: "3RD FLOOR WOMEN'S RESTROOM - PORTAL C" },
+  { key: "floor3UnisexPortalC_OGC", label: "3RD FLOOR UNISEX RESTROOM - PORTAL C - OGC SUITE" },
+  { key: "floor3UnisexPortalB_Super", label: "3RD FLOOR UNISEX RESTROOM - PORTAL B - SUPERINTENDENT SUITE" },
+  { key: "floor3MensPortalD", label: "3RD FLOOR MEN'S RESTROOM - PORTAL D" },
+  { key: "floor3WomensPortalD", label: "3RD FLOOR WOMEN'S RESTROOM - PORTAL D" },
+  { key: "floor4MensBreakArea", label: "4TH FLOOR MEN'S RESTROOM - BREAK AREA" },
+  { key: "floor4WomensBreakArea", label: "4TH FLOOR WOMEN'S RESTROOM - BREAK AREA" },
+  { key: "floor4MensNearNOC", label: "4TH FLOOR MEN'S RESTROOM - NEAR N.O.C." },
+  { key: "floor4WomensNearNOC", label: "4TH FLOOR WOMEN'S RESTROOM - NEAR N.O.C." },
+];
+
 export const generateInspectionPDF = async (formData: any, elementId: string) => {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -220,29 +260,16 @@ export const generateInspectionPDF = async (formData: any, elementId: string) =>
     
     y = addInspectionDetails(pdf, formData, y);
     
-    // Men's Restroom
-    let result = await addRestroomSection(pdf, "MEN'S RESTROOM", formData.mensRestroom, y, pageNum);
-    y = result.y;
-    pageNum = result.page;
-    
-    // Women's Restroom
-    result = await addRestroomSection(pdf, "WOMEN'S RESTROOM", formData.womensRestroom, y, pageNum);
-    y = result.y;
-    pageNum = result.page;
-    
-    // Unisex Restroom 1
-    result = await addRestroomSection(pdf, "UNISEX RESTROOM 1", formData.unisexRestroom1, y, pageNum);
-    y = result.y;
-    pageNum = result.page;
-    
-    // Unisex Restroom 2
-    result = await addRestroomSection(pdf, "UNISEX RESTROOM 2", formData.unisexRestroom2, y, pageNum);
-    y = result.y;
-    pageNum = result.page;
+    // Add all 35 restroom sections
+    for (const section of restroomSections) {
+      const result = await addRestroomSection(pdf, section.label, formData[section.key], y, pageNum);
+      y = result.y;
+      pageNum = result.page;
+    }
     
     // General Comments
     if (formData.generalComments && formData.generalComments.trim().length > 0) {
-      result = checkPageBreak(pdf, y, 20, pageNum);
+      const result = checkPageBreak(pdf, y, 20, pageNum);
       y = result.y;
       pageNum = result.page;
       

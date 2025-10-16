@@ -82,7 +82,6 @@ const schemaFields: Record<string, any> = {
   name: z.string().min(1, "Name is required"),
   date: z.string().min(1, "Date is required"),
   time: z.string().min(1, "Time is required"),
-  floor: z.string().min(1, "Floor is required"),
   generalComments: z.string().optional(),
 };
 
@@ -103,7 +102,6 @@ const buildDefaultValues = () => {
     name: "",
     date: new Date().toISOString().split('T')[0],
     time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-    floor: "",
     generalComments: "",
   };
   
@@ -224,19 +222,6 @@ export const InspectionForm = () => {
                       <FormLabel>Time</FormLabel>
                       <FormControl>
                         <Input type="time" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="floor"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel>Floor</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Floor number or name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
